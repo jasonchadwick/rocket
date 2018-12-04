@@ -24,7 +24,12 @@ for j in range(6):  #goes from 750 to 2000
     initial_velocity += (250 * j)
     print("\n")
     print(initial_velocity)
-    print("\n")
+    print("")
+
+    speedlist = []
+    fuellist = []
+    
+    
     for i in range(20):
         print("\ntrial %s") %(i)
         # Set up the display window.
@@ -303,6 +308,10 @@ for j in range(6):  #goes from 750 to 2000
 
         angle = rocket.theta
         speed = rocket.momentum.y / rocket.mass
+
+        speedlist.append(speed)
+        fuellist.append(rocket.fuel_pct * 10)
+        
         print("angle: %s rad") %(angle)
         print("vertical velocity: %s m/s") %(speed)
         #print("horizontal velocity: %s m/s") %(horizontal_vel)
@@ -310,5 +319,11 @@ for j in range(6):  #goes from 750 to 2000
         print("fuel: %s%%") %(rocket.fuel_pct * 100)
 
         scene.delete()
-        scene.delete()
+
+    print("\nSpeeds:")
+    for i in range(len(speedlist)):
+        print(speedlist[i])
+    print("\nFuel:")
+    for i in range(len(fuellist)):
+        print(fuellist[i])
 
