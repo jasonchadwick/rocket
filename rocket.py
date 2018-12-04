@@ -21,7 +21,7 @@ initial_velocity = 750      #approx. Mach 6 on reentry
 limiting_angle = pi/10
 
 for j in range(6):  #goes from 750 to 2000
-    initial_velocity += (250)
+    initial_velocity = 750 + (250 * j)
     print("\n")
     print(initial_velocity)
     print("")
