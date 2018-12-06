@@ -16,26 +16,36 @@ LOX_max_mass = 287e3
 fuel_total_mass = kerosene_max_mass + LOX_max_mass
 empty_rocket_mass = 22.2e3
 ballast_mass = 10e3
-atm_height = 100e3      #when "reentry" begins
-initial_velocity = 750      #approx. Mach 6 on reentry
+atm_height = 1.5e3      #when "reentry" begins
+initial_velocity = 1000      #approx. Mach 6 on reentry
 limiting_angle = pi/10
 
-for j in range(6):  #goes from 750 to 2000
-    initial_velocity = 750 + (250 * j)
+for j in range(1):  #goes from 750 to 2000
+    initial_velocity = 100 + (250 * j)
     print("\n")
     print(initial_velocity)
     print("")
 
     speedlist = []
     fuellist = []
+
+    number = 0
+
+    scene = display(title = 'Self-Landing Rocket', width = 1920, height = 1080, 
+                range = 100, center = (0, atm_height, 0))
     
-    
-    for i in range(0):
-        print("\ntrial %s") %(i)
+    while(True):
+        number += 1
+
+        if(number % 2 == 0):    atm_height = 1000
+        else:
+            atm_height = 2000
+            scene.range = 100
+            scene.center = (0, atm_height, 0)
+        
         # Set up the display window.
         #
-        scene = display(title = 'Self-Landing Rocket', width = 900, height = 1000, 
-                range = 50, center = (0, atm_height, 0))
+        
         #
         scene.autoscale = 0                             # Turn off auto scaling.
         scene.autocenter = 0
@@ -70,7 +80,7 @@ for j in range(6):  #goes from 750 to 2000
 
         rocket.pos = rocket.com - rocket.axis * (com_dist_from_bot/rocket.length)
         trail = curve(color = (0,0,1))
-        trail2 = curve(color = (0,0,0.5))
+        trail2 = curve(color = (0,1,0))
 
 
         height_label = label(pos = rocket.com, height = 16, text = "height")
@@ -79,7 +89,7 @@ for j in range(6):  #goes from 750 to 2000
         thrust_cone = cone(pos = rocket.pos, axis = -rocket.axis * 0.5, radius=rocket.radius, color=(1,0,0))
         momentum_arrow = arrow(pos = rocket.pos + rocket.axis, axis = (0,0,0), shaftwidth = 1)
 
-        dt = 0.01
+        dt = 0.005
 
         running = True
 
@@ -94,7 +104,7 @@ for j in range(6):  #goes from 750 to 2000
         falling_factor = 0
 
         while(running):
-            rate(500)   #simulation runs in real time
+            rate(200)   #simulation runs in real time
 
             com_fuel = rocket.pos + (rocket.fuel_pct * rocket.length * norm(rocket.axis) / 2)
             
@@ -206,7 +216,6 @@ for j in range(6):  #goes from 750 to 2000
             
             #if rocket is currently righting itself, slows it down if it will overshoot
             if (dot(rocket.ang_momentum, cross(rocket.axis, vector(0,1,0))) > 0) and (rocket.theta < 0.045 and rocket.y < atm_height * 0.8 and falling_factor != 1000 and ang_velocity > 0.01):
-                thrust_cone.color = (0,1,0)
                 
                 max_torque = -rocket_maxthrust * sin(limiting_angle) * com_dist_from_bot
                 if(ang_velocity**2 - 4*(max_torque/2)*(rocket.theta) > 0):
@@ -216,10 +225,9 @@ for j in range(6):  #goes from 750 to 2000
 
                 if(-max_torque * time < mag(rocket.ang_momentum)):
                     thrusting = True
-
+                    info_label.text = "Correcting for ang. momentum"
                     rocket_axis_norm = rocket.axis
-                    force_righting = -(-rocket_axis_norm).rotate(angle = limiting_angle + 1, axis = -rocket.ang_momentum)
-                    thrust_cone.color = (0,0,1)
+                    force_righting = -(-rocket_axis_norm).rotate(angle = limiting_angle, axis = -rocket.ang_momentum)
                     righting_factor = 50
             
             norm_thrust = norm(righting_factor * force_righting + targeting_factor*force_targeting + stab_factor*force_stab + falling_factor*force_falling + horiz_stab_factor*force_horiz_stab)
@@ -262,10 +270,10 @@ for j in range(6):  #goes from 750 to 2000
             thrust_cone.pos = rocket.pos
 
             #zooms out when rocket is about to land so that the landing can be viewed better
-            if(rocket.pos.y <= 800 and not zoom_out_triggered):
+            if(rocket.pos.y <= 1000 and not zoom_out_triggered):
                 zoom_out_triggered = True
-                scene.center = (rocket.x,400,rocket.z)
-                scene.range = 500
+                scene.center = (rocket.x,500,rocket.z)
+                scene.range = 1000
                 scene.forward = vector(0,0,-1)
                 scene.autocenter = 0
                 landing_pad = cylinder(pos = (rocket.x,0,rocket.z), axis = (0,-2,0), radius = 100, color = (0.5,0.5,0.5))
@@ -273,6 +281,7 @@ for j in range(6):  #goes from 750 to 2000
                 target_pad_2 = cylinder(pos = (rocket.x, 0, rocket.z), axis = (0, 0.2, 0), radius = rocket.y / 15, color = (0.5, 0.5, 0.5))
             elif((rocket.pos.y >= 1000 or abs(rocket.pos.x) > 500) and zoom_out_triggered):
                 zoom_out_triggered = False
+                scene.range = 100
 
             #centers screen on rocket
             if(not zoom_out_triggered): scene.center = rocket.com
@@ -296,11 +305,11 @@ for j in range(6):  #goes from 750 to 2000
             count += dt
 
             #visible things (for displaying a screenshot)
-            #if(rocket.pos.y < 1000):
-            #     trail.append(rocket.pos)
-            #     trail2.append(rocket.pos + rocket.axis)
-            #     if(count % 1.0 == 0):
-            #        copy = cylinder(pos = rocket.pos, axis = rocket.axis, radius = rocket.radius, color = (0.5, 0.5, 0.5))
+            if(rocket.pos.y < 1000):
+                 trail.append(rocket.pos)
+                 trail2.append(rocket.pos + rocket.axis)
+                 if(count == int(count)):
+                    copy = cylinder(pos = rocket.pos, axis = rocket.axis, radius = rocket.radius, color = (0.5, 0.5, 0.5))
 
             #stops once rocket has landed (or crashed)
             if(rocket.y < 1):
@@ -312,13 +321,14 @@ for j in range(6):  #goes from 750 to 2000
         speedlist.append(speed)
         fuellist.append(rocket.fuel_pct * 10)
         
-        print("angle: %s rad") %(angle)
+        print("\nangle: %s rad") %(angle)
         print("vertical velocity: %s m/s") %(speed)
-        #print("horizontal velocity: %s m/s") %(horizontal_vel)
-        #print("height: %s m") %(rocket.y)
         print("fuel: %s%%") %(rocket.fuel_pct * 100)
 
-        scene.delete()
+        for obj in scene.objects:
+            obj.visible = False
+            del obj
+#        scene.delete()
 
     print("\nSpeeds:")
     for i in range(len(speedlist)):
